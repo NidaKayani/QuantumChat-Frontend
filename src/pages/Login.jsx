@@ -90,7 +90,7 @@ export default function Login() {
 
   return (
     <div className="auth-page">
-      <div className="auth-theme-container">
+      <div className="auth-theme-container auth-page-topbar">
         <ThemeSwitcher />
       </div>
       <form className="auth-card" onSubmit={handleSubmit}>
@@ -101,7 +101,8 @@ export default function Login() {
               <path d="M7 11V7a5 5 0 0 1 10 0v4" />
             </svg>
           </div>
-          <h1>Log in to QuantumChat</h1>
+          <div className="auth-brand-name">QuantumChat</div>
+          <h1>Log in to your account</h1>
         </div>
 
         <div className="auth-field">
@@ -136,7 +137,7 @@ export default function Login() {
           />
           <button
             type="button"
-            className="password-toggle"
+            className="password-toggle auth-password-toggle"
             onClick={() => setShowPassword(!showPassword)}
             aria-label={showPassword ? 'Hide password' : 'Show password'}
             tabIndex={-1}

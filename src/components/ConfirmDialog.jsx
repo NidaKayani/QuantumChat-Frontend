@@ -1,115 +1,90 @@
-/**
- * ConfirmDialog.jsx
- * 
- * A modal confirmation dialog with backdrop blur.
- * Supports 'danger' and 'default' variants for the confirm button styling.
- * Includes scale-in animation and keyboard accessibility.
- */
-import { useEffect, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 
-/**
- * ConfirmDialog component
- * 
- * @param {Object}   props
- * @param {boolean}  props.isOpen       - Whether the dialog is visible
- * @param {string}   props.title        - Dialog title text
- * @param {string}   props.message      - Dialog body / description text
- * @param {string}   props.confirmLabel - Text for the confirm button (default: 'Confirm')
- * @param {string}   props.cancelLabel  - Text for the cancel button (default: 'Cancel')
- * @param {function} props.onConfirm    - Callback when the user confirms
- * @param {function} props.onCancel     - Callback when the user cancels or dismisses
- * @param {string}   props.variant      - 'danger' (red confirm) or 'default' (accent confirm)
- */
-function ConfirmDialog({
+export default function ConfirmDialog({
+  open,
   isOpen,
   title,
   message,
   confirmLabel = 'Confirm',
   cancelLabel = 'Cancel',
+  danger = false,
+  variant = 'default',
+  busy = false,
   onConfirm,
   onCancel,
-  variant = 'danger',
 }) {
-  /**
-   * Close the dialog on Escape key press.
-   */
-  const handleKeyDown = useCallback(
-    (event) => {
-      if (event.key === 'Escape') {
-        onCancel();
-      }
-    },
-    [onCancel]
-  );
+  const cancelRef = useRef(null);
+  const isCurrentlyOpen = open || isOpen;
+  const isDanger = danger || variant === 'danger';
 
-  // Bind keyboard listener and lock body scroll when open
   useEffect(() => {
-    if (!isOpen) return;
-
-    document.addEventListener('keydown', handleKeyDown);
+    if (!isCurrentlyOpen) return undefined;
+    const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+    cancelRef.current?.focus();
 
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = '';
-    };
-  }, [isOpen, handleKeyDown]);
-
-  // Don't render anything when closed
-  if (!isOpen) return null;
-
-  /**
-   * Close when clicking the overlay backdrop, not the dialog itself.
-   */
-  const handleOverlayClick = (event) => {
-    if (event.target === event.currentTarget) {
-      onCancel();
+    function onKeyDown(e) {
+      if (e.key === 'Escape' && !busy) onCancel?.();
     }
-  };
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isCurrentlyOpen, busy, onCancel]);
+
+  if (!isCurrentlyOpen) return null;
 
   return (
-    <div
-      className="confirm-overlay"
-      onClick={handleOverlayClick}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="confirm-dialog-title"
-      aria-describedby="confirm-dialog-message"
-    >
-      <div className="confirm-dialog">
-        {/* Dialog title */}
-        <h2 id="confirm-dialog-title" className="confirm-title">
+    <div className="confirm-overlay" role="presentation" onClick={() => !busy && onCancel?.()}>
+      <div
+        className="confirm-dialog"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="confirm-dialog-title"
+        aria-describedby="confirm-dialog-message"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className={`confirm-dialog-icon ${isDanger ? 'danger' : ''}`}>
+          {isDanger ? (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+          )}
+        </div>
+        <h2 id="confirm-dialog-title" className="confirm-dialog-title confirm-title">
           {title}
         </h2>
-
-        {/* Dialog message / description */}
-        <p id="confirm-dialog-message" className="confirm-message">
+        <p id="confirm-dialog-message" className="confirm-dialog-message confirm-message">
           {message}
         </p>
-
-        {/* Action buttons */}
-        <div className="confirm-actions">
+        <div className="confirm-dialog-actions confirm-actions">
           <button
-            className="confirm-btn-cancel"
-            onClick={onCancel}
+            ref={cancelRef}
             type="button"
-            aria-label={cancelLabel}
+            className="confirm-btn-cancel confirm-btn cancel"
+            onClick={onCancel}
+            disabled={busy}
           >
             {cancelLabel}
           </button>
-
           <button
-            className={variant === 'danger' ? 'confirm-btn-danger' : 'confirm-btn-confirm'}
-            onClick={onConfirm}
             type="button"
-            aria-label={confirmLabel}
+            className={`confirm-btn ${isDanger ? 'confirm-btn-danger danger' : 'confirm-btn-confirm primary'}`}
+            onClick={onConfirm}
+            disabled={busy}
           >
-            {confirmLabel}
+            {busy ? 'Working…' : confirmLabel}
           </button>
         </div>
       </div>
     </div>
   );
 }
-
-export default ConfirmDialog;

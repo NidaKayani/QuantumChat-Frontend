@@ -120,7 +120,7 @@ export default function Register() {
 
   return (
     <div className="auth-page">
-      <div className="auth-theme-container">
+      <div className="auth-theme-container auth-page-topbar">
         <ThemeSwitcher />
       </div>
       <form className="auth-card" onSubmit={handleSubmit}>
@@ -130,6 +130,7 @@ export default function Register() {
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
           </div>
+          <div className="auth-brand-name">QuantumChat</div>
           <h1>Create your account</h1>
         </div>
 
@@ -184,7 +185,7 @@ export default function Register() {
           />
           <button
             type="button"
-            className="password-toggle"
+            className="password-toggle auth-password-toggle"
             onClick={() => setShowPassword(!showPassword)}
             aria-label={showPassword ? 'Hide password' : 'Show password'}
             tabIndex={-1}

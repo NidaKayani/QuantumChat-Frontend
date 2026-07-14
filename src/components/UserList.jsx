@@ -1,6 +1,7 @@
 // Simple string hash to pick a consistent gradient class per username
 function hashUsername(name) {
   let hash = 0;
+  if (!name) return 0;
   for (let i = 0; i < name.length; i++) {
     hash = name.charCodeAt(i) + ((hash << 5) - hash);
     hash |= 0; // force 32-bit int
@@ -25,7 +26,17 @@ function formatShortLastSeen(iso) {
   return `${days}d ago`;
 }
 
-export default function UserList({ users, selectedUserId, onSelect, loading, onlineUsers = new Set(), unreadCounts = {}, lastMessages = {} }) {
+export default function UserList({
+  users,
+  selectedUserId,
+  onSelect,
+  onHide,
+  onBlock,
+  loading,
+  onlineUsers = new Set(),
+  unreadCounts = {},
+  lastMessages = {},
+}) {
   if (loading) {
     return (
       <div className="user-list">
@@ -50,18 +61,28 @@ export default function UserList({ users, selectedUserId, onSelect, loading, onl
         const lastMsg = lastMessages[u.id];
 
         return (
-          <button
+          <div
             key={u.id}
             className={`user-list-item ${u.id === selectedUserId ? 'active' : ''}`}
+            role="button"
+            tabIndex={0}
             onClick={() => onSelect(u)}
-            aria-label={`Chat with ${u.username}, ${online ? 'online' : 'offline'}${unread ? `, ${unread} unread` : ''}`}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onSelect(u);
+              }
+            }}
+            aria-label={`Chat with ${u.username || 'Unknown user'}, ${online ? 'online' : 'offline'}${
+              unread ? `, ${unread} unread` : ''
+            }`}
           >
-            <span className={`avatar avatar-gradient-${hashUsername(u.username)}`}>
-              {u.username.slice(0, 2).toUpperCase()}
+            <span className={`avatar avatar-gradient-${hashUsername(u.username || '')}`}>
+              {(u.username || '?').slice(0, 2).toUpperCase()}
               {online && <span className="online-dot" />}
             </span>
             <span className="user-list-meta">
-              <span className="user-list-name">{u.username}</span>
+              <span className="user-list-name">{u.username || 'Unknown user'}</span>
               {lastMsg ? (
                 <span className="user-list-preview">{lastMsg}</span>
               ) : (
@@ -69,7 +90,39 @@ export default function UserList({ users, selectedUserId, onSelect, loading, onl
               )}
             </span>
             {unread > 0 && <span className="unread-badge">{unread > 99 ? '99+' : unread}</span>}
-          </button>
+            <span className="user-list-actions">
+              <button
+                type="button"
+                className="user-list-action-btn"
+                title="Hide chat"
+                aria-label={`Hide chat with ${u.username}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onHide?.(u);
+                }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                className="user-list-action-btn danger"
+                title="Block user"
+                aria-label={`Block ${u.username}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onBlock?.(u);
+                }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+                </svg>
+              </button>
+            </span>
+          </div>
         );
       })}
       {users.length === 0 && <p className="empty-hint">No other users yet.</p>}

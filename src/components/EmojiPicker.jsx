@@ -1,15 +1,6 @@
-/**
- * EmojiPicker.jsx
- * 
- * A lightweight floating emoji picker panel with categorized emojis.
- * Supports click-outside detection to auto-close and provides
- * a grid layout for easy emoji selection.
- * 
- * Categories: Smileys, Gestures, Hearts, Objects
- */
 import { useRef, useEffect, useCallback } from 'react';
+import { COMPOSER_EMOJIS } from '../utils/emojis.js';
 
-/** Emoji categories with their labels and emoji lists */
 const EMOJI_CATEGORIES = [
   {
     label: 'Smileys',
@@ -29,73 +20,77 @@ const EMOJI_CATEGORIES = [
   },
 ];
 
-/**
- * EmojiPicker component
- * 
- * @param {Object} props
- * @param {function} props.onSelect  - Callback invoked with the selected emoji string
- * @param {boolean}  props.isOpen    - Whether the picker panel is visible
- * @param {function} props.onClose   - Callback to close the picker
- */
-function EmojiPicker({ onSelect, isOpen, onClose }) {
+export default function EmojiPicker({ onSelect, onPick, isOpen, onClose }) {
   const panelRef = useRef(null);
+  const triggerSelect = onSelect || onPick;
+  const isCurrentlyOpen = isOpen !== undefined ? isOpen : true; // fallback to true if uncontrolled
 
-  /**
-   * Handle emoji button click — notify parent and close the picker.
-   */
   const handleEmojiClick = useCallback(
     (emoji) => {
-      onSelect(emoji);
-      onClose();
+      triggerSelect?.(emoji);
+      onClose?.();
     },
-    [onSelect, onClose]
+    [triggerSelect, onClose]
   );
 
-  /**
-   * Detect clicks outside the picker panel and close it.
-   */
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isCurrentlyOpen || !onClose) return;
 
     function handleClickOutside(event) {
       if (panelRef.current && !panelRef.current.contains(event.target)) {
-        onClose();
+        // Only trigger close if the click isn't on the toggle button
+        const isToggle = event.target.closest('.attach-button');
+        if (!isToggle) {
+          onClose();
+        }
       }
     }
 
-    // Use mousedown so the click is caught before focus shifts
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen, onClose]);
+  }, [isCurrentlyOpen, onClose]);
 
-  // Don't render anything when closed
-  if (!isOpen) return null;
+  if (!isCurrentlyOpen) return null;
+
+  // Use the curated categorization if available, otherwise fallback to COMPOSER_EMOJIS if imported
+  const emojisToUse = COMPOSER_EMOJIS || EMOJI_CATEGORIES.flatMap(c => c.emojis);
 
   return (
     <div className="emoji-picker" ref={panelRef} role="dialog" aria-label="Emoji picker">
-      {EMOJI_CATEGORIES.map((category) => (
-        <div key={category.label} className="emoji-picker-category">
-          {/* Category heading */}
-          <span className="emoji-picker-category-label">{category.label}</span>
-
-          {/* Emoji grid */}
-          <div className="emoji-picker-grid" role="group" aria-label={`${category.label} emojis`}>
-            {category.emojis.map((emoji) => (
-              <button
-                key={emoji}
-                className="emoji-picker-btn"
-                type="button"
-                onClick={() => handleEmojiClick(emoji)}
-                aria-label={`Select ${emoji}`}
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
+      <div className="emoji-picker-header">
+        <span>Emojis</span>
+        <button type="button" className="emoji-picker-close" onClick={onClose} aria-label="Close emoji picker">
+          ×
+        </button>
+      </div>
+      {COMPOSER_EMOJIS ? (
+        <div className="emoji-picker-grid">
+          {emojisToUse.map((emoji) => (
+            <button key={emoji} type="button" onClick={() => handleEmojiClick(emoji)} aria-label={`Insert ${emoji}`}>
+              {emoji}
+            </button>
+          ))}
         </div>
-      ))}
+      ) : (
+        EMOJI_CATEGORIES.map((category) => (
+          <div key={category.label} className="emoji-picker-category">
+            <span className="emoji-picker-category-label">{category.label}</span>
+            <div className="emoji-picker-grid" role="group" aria-label={`${category.label} emojis`}>
+              {category.emojis.map((emoji) => (
+                <button
+                  key={emoji}
+                  className="emoji-picker-btn"
+                  type="button"
+                  onClick={() => handleEmojiClick(emoji)}
+                  aria-label={`Select ${emoji}`}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))
+      )}
     </div>
   );
 }
-
-export default EmojiPicker;

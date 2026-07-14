@@ -1,14 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useTheme } from '../context/ThemeContext.jsx';
 
 export default function ThemeSwitcher() {
-  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
-
-  useEffect(() => {
-    // Remove other theme classes and add the active one
-    document.body.classList.remove('theme-light', 'theme-dark', 'theme-eyecare');
-    document.body.classList.add(`theme-${theme}`);
-    localStorage.setItem('theme', theme);
-  }, [theme]);
+  const { theme, setTheme } = useTheme();
 
   return (
     <div className="theme-switcher">
