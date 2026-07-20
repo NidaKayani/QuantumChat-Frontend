@@ -1,0 +1,15 @@
+# Gitleaks config for QuantumChat Frontend
+title = "QuantumChat Frontend"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Docs placeholders and removed admin widget paths"
+paths = [
+  '''(^|/)admin/''',
+]
+regexes = [
+  # Truncated JWT examples in comments/docs (not live credentials)
+  '''eyJhbGciOiJIUzI1NiIs\.\.\.''',
+]

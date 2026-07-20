@@ -1,3 +1,8 @@
 node_modules/
 dist/
 .env
+
+# Local gitleaks binary
+gitleaks.exe
+gitleaks_*.zip
+
