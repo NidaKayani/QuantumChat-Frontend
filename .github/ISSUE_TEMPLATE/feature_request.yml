@@ -1,0 +1,18 @@
+name: Feature request
+description: Propose a frontend enhancement
+title: "[feat]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: Include any impact on E2E crypto or key handling.
+    validations:
+      required: true
