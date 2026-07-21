@@ -58,7 +58,6 @@ import MessageBubble from '../components/MessageBubble.jsx';
 import EmojiPicker from '../components/EmojiPicker.jsx';
 import ConfirmDialog from '../components/ConfirmDialog.jsx';
 import DateSeparator from '../components/DateSeparator.jsx';
-import DateSeparator from '../components/DateSeparator.jsx';
 import MessageSearch from '../components/MessageSearch.jsx';
 import DragDropOverlay from '../components/DragDropOverlay.jsx';
 import TypingIndicator from '../components/TypingIndicator.jsx';
