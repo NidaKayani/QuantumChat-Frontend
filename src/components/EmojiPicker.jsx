@@ -1,5 +1,5 @@
 import { useRef, useEffect, useCallback, useState } from 'react';
-import { COMPOSER_EMOJIS } from '../utils/emojis.js';
+import { COMPOSER_EMOJIS, searchEmojis } from '../utils/emojis.js';
 
 const EMOJI_CATEGORIES = [
   {
@@ -63,9 +63,7 @@ export default function EmojiPicker({ onSelect, onPick, isOpen, onClose }) {
 
   // When searching, filter all known emojis; otherwise show by category
   const trimmedQuery = query.trim();
-  const searchResults = trimmedQuery
-    ? ALL_EMOJIS.filter((e) => e.includes(trimmedQuery))
-    : [];
+  const searchResults = trimmedQuery ? searchEmojis(trimmedQuery) : [];
   const isSearching = trimmedQuery.length > 0;
 
   return (
