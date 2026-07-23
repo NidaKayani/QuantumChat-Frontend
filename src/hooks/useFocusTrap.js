@@ -11,12 +11,15 @@ const FOCUSABLE_SELECTORS = [
 
 /**
  * useFocusTrap — Traps keyboard focus inside the element pointed to by `ref`.
- * When `active` is true, Tab/Shift+Tab will cycle within the container.
+ * When `active` is true, Tab/Shift+Tab will cycle within the container
+ * and Escape will trigger `onEscape` (or click the first close button).
  *
  * @param {React.RefObject} ref - Ref to the modal/dialog container element.
  * @param {boolean} [active=true] - Whether the trap is active.
+ * @param {Object} [options] - Additional options.
+ * @param {Function} [options.onEscape] - Callback when Escape is pressed.
  */
-export default function useFocusTrap(ref, active = true) {
+export default function useFocusTrap(ref, active = true, { onEscape } = {}) {
   useEffect(() => {
     if (!active || !ref.current) return;
 
@@ -27,6 +30,21 @@ export default function useFocusTrap(ref, active = true) {
     firstFocusable?.focus();
 
     function handleKeyDown(e) {
+      // Escape: dismiss the modal
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        if (onEscape) {
+          onEscape();
+        } else {
+          // Fallback: click the first close-like button in the container
+          const closeBtn = container.querySelector(
+            '[aria-label*="Close"], [aria-label*="close"], .emoji-picker-close, .modal-close'
+          );
+          closeBtn?.click();
+        }
+        return;
+      }
+
       if (e.key !== 'Tab') return;
 
       const focusableEls = Array.from(container.querySelectorAll(FOCUSABLE_SELECTORS));
@@ -52,5 +70,5 @@ export default function useFocusTrap(ref, active = true) {
 
     container.addEventListener('keydown', handleKeyDown);
     return () => container.removeEventListener('keydown', handleKeyDown);
-  }, [ref, active]);
+  }, [ref, active, onEscape]);
 }
